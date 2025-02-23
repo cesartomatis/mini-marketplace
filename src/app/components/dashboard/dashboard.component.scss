@@ -1,0 +1,41 @@
+.container {
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+mat-card {
+  flex: 1;
+  min-width: 300px;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.error {
+  color: #f44336;
+  text-align: center;
+}
+
+.no-services {
+  text-align: center;
+  color: #666;
+}
+
+.full-width {
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  mat-card {
+    min-width: 100%;
+  }
+}
