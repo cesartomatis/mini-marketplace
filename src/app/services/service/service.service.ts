@@ -1,4 +1,3 @@
-import { AuthService } from '../auth/auth.service';
 import { Injectable } from '@angular/core';
 import {
   Firestore,
@@ -14,6 +13,7 @@ import {
 } from '@angular/fire/firestore';
 import { Observable, of } from 'rxjs';
 import { Service } from '../../models/service.model';
+import { AuthService } from '../auth/auth.service';
 import { switchMap, take } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 
@@ -43,8 +43,8 @@ export class ServiceService {
             q,
             (snapshot) => {
               const services: Service[] = snapshot.docs.map((doc) => ({
-                id: doc.id,
                 ...(doc.data() as Service),
+                id: doc.id,
               }));
               observer.next(services);
             },
@@ -58,8 +58,16 @@ export class ServiceService {
 
   async addService(service: Service) {
     const user = await firstValueFrom(this.authService.user$.pipe(take(1)));
-    if (!user) throw new Error('No user authenticated');
-    return addDoc(this.servicesCollection, { ...service, userId: user.uid });
+    if (!user || !user.uid)
+      throw new Error('No user authenticated or UID missing');
+    const dataToSend = { ...service, userId: user.uid };
+    try {
+      const docRef = await addDoc(this.servicesCollection, dataToSend);
+      return docRef;
+    } catch (error: any) {
+      console.error('Error adding service:', error);
+      throw error;
+    }
   }
 
   async updateService(id: string, service: Partial<Service>) {

@@ -5,15 +5,16 @@ import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { ServiceService } from '../../services/service/service.service';
 import { AuthService } from '../../services/auth/auth.service';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Service } from '../../models/service.model';
 import { Observable } from 'rxjs';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard',
@@ -26,46 +27,53 @@ import { Observable } from 'rxjs';
     MatFormFieldModule,
     MatInputModule,
     FormsModule,
+    ReactiveFormsModule,
     MatProgressSpinnerModule,
     MatToolbarModule,
     MatIconModule,
-    RouterLink,
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit {
   services$: Observable<Service[]>;
-  currentService: Service = {
-    name: '',
-    description: '',
-    price: 0,
-    category: '',
-  };
+  serviceForm: FormGroup;
   loading = false;
   error = '';
+  editingServiceId: string | null = null;
 
   constructor(
     private serviceService: ServiceService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private fb: FormBuilder
   ) {
     this.services$ = this.serviceService.getServices();
+    this.serviceForm = this.fb.group({
+      name: ['', Validators.required],
+      description: ['', Validators.required],
+      price: ['', [Validators.required, Validators.min(0)]],
+      category: ['', Validators.required],
+    });
   }
 
   ngOnInit() {}
 
-  async addOrUpdateService() {
+  async onSubmit() {
+    if (this.serviceForm.invalid) {
+      this.error = 'Please fill all fields correctly.';
+      return;
+    }
+
     this.loading = true;
     this.error = '';
     try {
-      if (this.currentService.id) {
-        await this.serviceService.updateService(
-          this.currentService.id,
-          this.currentService
-        );
+      const service: Service = this.serviceForm.value;
+      if (this.editingServiceId) {
+        await this.serviceService.updateService(this.editingServiceId, service);
       } else {
-        await this.serviceService.addService(this.currentService);
+        const res = await this.serviceService.addService(service);
+        console.log('Service added with ID: ', res);
       }
       this.resetForm();
     } catch (error: any) {
@@ -76,10 +84,21 @@ export class DashboardComponent implements OnInit {
   }
 
   editService(service: Service) {
-    this.currentService = { ...service };
+    this.editingServiceId = service.id || null;
+    this.serviceForm.patchValue({
+      name: service.name,
+      description: service.description,
+      price: service.price,
+      category: service.category,
+    });
   }
 
-  async deleteService(id: string) {
+  async deleteService(id: string | undefined) {
+    if (!id) {
+      this.error = 'Service ID is missing.';
+      return;
+    }
+
     this.loading = true;
     this.error = '';
     try {
@@ -97,6 +116,7 @@ export class DashboardComponent implements OnInit {
   }
 
   resetForm() {
-    this.currentService = { name: '', description: '', price: 0, category: '' };
+    this.serviceForm.reset();
+    this.editingServiceId = null;
   }
 }
