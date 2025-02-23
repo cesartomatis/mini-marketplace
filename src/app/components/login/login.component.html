@@ -1,43 +1,79 @@
 <div class="login-container">
-  <mat-card class="login-card">
+  <mat-card class="login-card" role="main" aria-label="Login form">
     <mat-card-header>
       <mat-card-title>Sign In</mat-card-title>
     </mat-card-header>
     <mat-card-content class="form-content">
-      <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
-        <mat-form-field class="full-width">
+      <div *ngIf="loading" class="loading" role="alert" aria-live="polite">
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="40"
+          aria-label="Logging in"
+        ></mat-progress-spinner>
+      </div>
+      <div *ngIf="error" class="error" role="alert">{{ error }}</div>
+      <form
+        [formGroup]="loginForm"
+        (ngSubmit)="onLogin()"
+        #loginFormRef="ngForm"
+        role="form"
+        aria-label="Login form"
+      >
+        <mat-form-field class="full-width" appearance="outline">
+          <mat-label>Email</mat-label>
           <input
             matInput
-            placeholder="Email"
-            [(ngModel)]="email"
-            name="email"
+            formControlName="email"
+            type="email"
             required
-            email
+            aria-required="true"
           />
+          <mat-error *ngIf="loginForm.get('email')?.hasError('required')"
+            >Email is required.</mat-error
+          >
+          <mat-error *ngIf="loginForm.get('email')?.hasError('email')"
+            >Please enter a valid email address.</mat-error
+          >
         </mat-form-field>
-        <mat-form-field class="full-width">
+        <mat-form-field class="full-width" appearance="outline">
+          <mat-label>Password</mat-label>
           <input
             matInput
-            placeholder="Password"
-            [(ngModel)]="password"
-            type="password"
-            name="password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
             required
+            aria-required="true"
           />
+          <button
+            mat-icon-button
+            matSuffix
+            (click)="togglePasswordVisibility($event)"
+            aria-label="Toggle password visibility"
+          >
+            <mat-icon>{{
+              showPassword ? "visibility_off" : "visibility"
+            }}</mat-icon>
+          </button>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('required')"
+            >Password is required.</mat-error
+          >
         </mat-form-field>
         <button
           mat-raised-button
           color="primary"
           type="submit"
           class="full-width"
-          [disabled]="!loginForm.valid || loading"
+          [disabled]="loginForm.invalid || loading"
+          aria-label="Login"
         >
-          {{ loading ? "Loading..." : "Sign In" }}
+          {{ loading ? "Logging in..." : "Sign In" }}
         </button>
       </form>
-      <p *ngIf="error">{{ error }}</p>
-      <p class="link">
-        Don't have an account? <a routerLink="/register">Register here</a>
+      <p class="link" role="link">
+        Don't have an account?
+        <a (click)="navigateToRegister()" aria-label="Register now"
+          >Register here</a
+        >
       </p>
     </mat-card-content>
   </mat-card>

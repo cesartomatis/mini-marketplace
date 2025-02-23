@@ -4,22 +4,87 @@
   align-items: center;
   min-height: 100vh;
   padding: 20px;
-  background-color: #e6dbb7;
+  background-color: #f5f5f5;
 }
 
 .login-card {
   width: 100%;
   max-width: 400px;
+  transition: box-shadow 0.3s ease-in-out;
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .form-content {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 16px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.error {
+  color: #f44336;
+  text-align: center;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #ffebee;
+  border-radius: 4px;
+}
+
+.link {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+  a {
+    color: #1976d2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    &:hover {
+      text-decoration: underline;
+      color: #1565c0;
+    }
+  }
+}
+
+button.mat-icon-button[matSuffix] {
+  margin-left: 8px;
+  transition: transform 0.2s ease;
+  &:hover {
+    transform: scale(1.1);
+  }
 }
 
 @media (max-width: 600px) {
+  .login-container {
+    padding: 10px;
+  }
+
   .login-card {
     max-width: 90%;
+  }
+
+  .form-content {
+    padding: 10px;
+  }
+
+  mat-card-title {
+    font-size: 1.2rem;
+  }
+
+  button.mat-icon-button[matSuffix] {
+    margin-left: 4px;
   }
 }
