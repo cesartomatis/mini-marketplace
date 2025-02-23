@@ -1,0 +1,44 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>Sign In</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="form-content">
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+        <mat-form-field class="full-width">
+          <input
+            matInput
+            placeholder="Email"
+            [(ngModel)]="email"
+            name="email"
+            required
+            email
+          />
+        </mat-form-field>
+        <mat-form-field class="full-width">
+          <input
+            matInput
+            placeholder="Password"
+            [(ngModel)]="password"
+            type="password"
+            name="password"
+            required
+          />
+        </mat-form-field>
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="full-width"
+          [disabled]="!loginForm.valid || loading"
+        >
+          {{ loading ? "Loading..." : "Sign In" }}
+        </button>
+      </form>
+      <p *ngIf="error">{{ error }}</p>
+      <p class="link">
+        Don't have an account? <a routerLink="/register">Register here</a>
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>
