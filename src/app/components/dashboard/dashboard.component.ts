@@ -16,6 +16,8 @@ import { Router } from '@angular/router';
 import { Service } from '../../models/service.model';
 import { Observable } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { loadStripe } from '@stripe/stripe-js';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,6 +38,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   encapsulation: ViewEncapsulation.None,
+  providers: [ServiceService, AuthService],
 })
 export class DashboardComponent implements OnInit {
   services$: Observable<Service[]>;
@@ -47,15 +50,21 @@ export class DashboardComponent implements OnInit {
   createError = '';
   editingServiceId: string | null = null;
   updatingPriceServiceId: string | null = null;
+  isPremium$: Observable<boolean>;
+  stripePromise = loadStripe(
+    'pk_test_51QvxedEHVvkxjWeE3degjZcTbX4bAbSVOTWrhtEnyxq0eRiRjmSuDpuEATptGh8gkNx2ukPHJqMPLXIKJwmIWDCH00M3cjhLdj'
+  );
 
   constructor(
     private serviceService: ServiceService,
     private authService: AuthService,
     private router: Router,
     private fb: FormBuilder,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private functions: AngularFireFunctions
   ) {
     this.services$ = this.serviceService.getServices();
+    this.isPremium$ = this.authService.isPremium$();
     this.createServiceForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required],
@@ -112,6 +121,18 @@ export class DashboardComponent implements OnInit {
     this.loading = true;
     this.priceError = '';
     this.error = '';
+
+    const isPremium = await this.isPremium$.toPromise();
+    if (!isPremium) {
+      this.error = 'You need a premium subscription to update prices.';
+      this.snackBar.open('Upgrade to premium to update prices.', 'Close', {
+        duration: 5000,
+        panelClass: ['warning-snackbar'],
+      });
+      this.loading = false;
+      return;
+    }
+
     try {
       const updatedPrice = this.priceUpdateForm.value.price;
       await this.serviceService.updateService(this.updatingPriceServiceId, {
@@ -197,5 +218,28 @@ export class DashboardComponent implements OnInit {
   getServiceName(services: Service[]): string {
     const service = services.find((s) => s.id === this.updatingPriceServiceId);
     return service?.name || 'Service';
+  }
+
+  async subscribe() {
+    this.loading = true;
+    try {
+      const stripe = await this.stripePromise;
+      if (!stripe) {
+        throw new Error('Stripe.js failed to load. Please try again.');
+      }
+      const callable = this.functions.httpsCallable('createCheckoutSession');
+      const result: any = await callable({}).toPromise();
+      await stripe.redirectToCheckout({ sessionId: result.sessionId });
+    } catch (error) {
+      this.error =
+        'Error subscribing: ' +
+        (error instanceof Error ? error.message : 'Unknown error');
+      this.snackBar.open(this.error, 'Close', {
+        duration: 5000,
+        panelClass: ['error-snackbar'],
+      });
+    } finally {
+      this.loading = false;
+    }
   }
 }

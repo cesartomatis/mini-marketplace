@@ -28,6 +28,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
+  providers: [AuthService],
 })
 export class LoginComponent {
   loginForm: FormGroup;

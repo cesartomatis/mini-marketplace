@@ -190,6 +190,25 @@
       </mat-card-content>
     </mat-card>
   </ng-container>
+
+  <mat-card class="service-card" *ngIf="(isPremium$ | async) === false">
+    <mat-card-title>Upgrade to Premium</mat-card-title>
+    <mat-card-content>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="subscribe()"
+        class="full-width"
+        [disabled]="loading"
+        aria-label="Subscribe to premium"
+      >
+        {{ loading ? "Processing..." : "Subscribe Now" }}
+      </button>
+      <div *ngIf="error" class="error" role="alert">
+        {{ error }}
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>
 
 <ng-template #noServices>

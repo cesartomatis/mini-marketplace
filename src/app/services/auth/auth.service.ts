@@ -6,7 +6,15 @@ import {
   createUserWithEmailAndPassword,
   signOut,
 } from '@angular/fire/auth';
-import { Observable } from 'rxjs';
+import {
+  Firestore,
+  doc,
+  setDoc,
+  getDoc,
+  DocumentSnapshot,
+} from '@angular/fire/firestore';
+import { Observable, of, from } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +22,7 @@ import { Observable } from 'rxjs';
 export class AuthService {
   user$: Observable<any>;
 
-  constructor(private auth: Auth) {
+  constructor(private auth: Auth, private firestore: Firestore) {
     this.user$ = user(auth);
   }
 
@@ -28,7 +36,16 @@ export class AuthService {
 
   async register(email: string, password: string) {
     try {
-      return await createUserWithEmailAndPassword(this.auth, email, password);
+      const result = await createUserWithEmailAndPassword(
+        this.auth,
+        email,
+        password
+      );
+      await setDoc(doc(this.firestore, 'users', result.user.uid), {
+        email: result.user.email,
+        isPremium: false,
+      });
+      return result;
     } catch (error) {
       throw error;
     }
@@ -36,5 +53,35 @@ export class AuthService {
 
   async logout() {
     return await signOut(this.auth);
+  }
+
+  isPremium$(): Observable<boolean> {
+    return this.user$.pipe(
+      switchMap((user) => {
+        if (!user) {
+          return of(false);
+        }
+        return from(getDoc(doc(this.firestore, 'users', user.uid))).pipe(
+          map((snapshot: DocumentSnapshot) =>
+            snapshot.exists() ? snapshot.data()?.['isPremium'] ?? false : false
+          )
+        );
+      })
+    );
+  }
+
+  getUserData$(): Observable<any> {
+    return this.user$.pipe(
+      switchMap((user) => {
+        if (!user) {
+          return of(null);
+        }
+        return from(getDoc(doc(this.firestore, 'users', user.uid))).pipe(
+          map((snapshot: DocumentSnapshot) =>
+            snapshot.exists() ? snapshot.data() : null
+          )
+        );
+      })
+    );
   }
 }
