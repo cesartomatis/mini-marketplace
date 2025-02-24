@@ -117,6 +117,47 @@ button.mat-icon-button {
   color: white;
 }
 
+.user-menu {
+  .mat-mdc-menu-content {
+    min-width: 150px;
+    max-height: 300px;
+    overflow-y: auto;
+    visibility: visible;
+    display: block;
+  }
+
+  .mat-mdc-menu-item {
+    min-width: 150px;
+    padding: 8px 16px;
+    display: block;
+    visibility: visible;
+  }
+}
+
+.menu-loading {
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mat-mdc-menu-content {
+  min-width: 150px;
+}
+
+.mat-mdc-menu-item {
+  min-width: 150px;
+  padding: 8px 16px;
+}
+
+button.mat-icon-button[matMenuTriggerFor] {
+  margin-right: 10px;
+  transition: transform 0.2s ease;
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 10px;

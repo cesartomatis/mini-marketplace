@@ -1,4 +1,10 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewEncapsulation,
+  ChangeDetectorRef,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatListModule } from '@angular/material/list';
@@ -10,14 +16,18 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatMenuModule } from '@angular/material/menu';
 import { ServiceService } from '../../services/service/service.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { Router } from '@angular/router';
 import { Service } from '../../models/service.model';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { loadStripe } from '@stripe/stripe-js';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
+import { Firestore } from '@angular/fire/firestore';
+import { doc, updateDoc } from '@angular/fire/firestore';
+import { defaultIfEmpty, tap, shareReplay, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -34,13 +44,13 @@ import { AngularFireFunctions } from '@angular/fire/compat/functions';
     MatProgressSpinnerModule,
     MatToolbarModule,
     MatIconModule,
+    MatMenuModule,
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   encapsulation: ViewEncapsulation.None,
-  providers: [ServiceService, AuthService],
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   services$: Observable<Service[]>;
   createServiceForm: FormGroup;
   priceUpdateForm: FormGroup;
@@ -51,6 +61,9 @@ export class DashboardComponent implements OnInit {
   editingServiceId: string | null = null;
   updatingPriceServiceId: string | null = null;
   isPremium$: Observable<boolean>;
+  isPremium: boolean = false;
+  private cdr: ChangeDetectorRef;
+  private subscription: Subscription | null = null;
   stripePromise = loadStripe(
     'pk_test_51QvxedEHVvkxjWeE3degjZcTbX4bAbSVOTWrhtEnyxq0eRiRjmSuDpuEATptGh8gkNx2ukPHJqMPLXIKJwmIWDCH00M3cjhLdj'
   );
@@ -61,10 +74,23 @@ export class DashboardComponent implements OnInit {
     private router: Router,
     private fb: FormBuilder,
     private snackBar: MatSnackBar,
-    private functions: AngularFireFunctions
+    private functions: AngularFireFunctions,
+    private firestore: Firestore,
+    cdr: ChangeDetectorRef
   ) {
     this.services$ = this.serviceService.getServices();
-    this.isPremium$ = this.authService.isPremium$();
+    this.isPremium$ = this.authService.isPremium$().pipe(
+      shareReplay(1),
+      tap((isPremium) =>
+        console.log(
+          'isPremium emitted (constructor):',
+          isPremium,
+          'Type:',
+          typeof isPremium
+        )
+      )
+    );
+    this.cdr = cdr;
     this.createServiceForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required],
@@ -76,7 +102,29 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.subscription = this.isPremium$
+      .pipe(
+        defaultIfEmpty(false),
+        tap((isPremium) => {
+          console.log(
+            'isPremium emitted (ngOnInit):',
+            isPremium,
+            'Type:',
+            typeof isPremium
+          );
+          this.isPremium = isPremium;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe();
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
 
   async onCreateService() {
     if (this.createServiceForm.invalid) {
@@ -195,6 +243,8 @@ export class DashboardComponent implements OnInit {
       duration: 3000,
       panelClass: ['success-snackbar'],
     });
+    this.isPremium = false;
+    this.cdr.detectChanges();
   }
 
   resetCreateForm() {
@@ -233,6 +283,36 @@ export class DashboardComponent implements OnInit {
     } catch (error) {
       this.error =
         'Error subscribing: ' +
+        (error instanceof Error ? error.message : 'Unknown error');
+      this.snackBar.open(this.error, 'Close', {
+        duration: 5000,
+        panelClass: ['error-snackbar'],
+      });
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async unsubscribe() {
+    this.loading = true;
+    try {
+      const callable = this.functions.httpsCallable('cancelSubscription');
+      await callable({}).toPromise();
+      const user = await this.authService.user$.pipe(take(1)).toPromise();
+      if (user) {
+        await updateDoc(doc(this.firestore, 'users', user.uid), {
+          isPremium: false,
+        });
+      }
+      this.snackBar.open('Subscription canceled successfully!', 'Close', {
+        duration: 3000,
+        panelClass: ['success-snackbar'],
+      });
+      this.isPremium = false;
+      this.cdr.detectChanges();
+    } catch (error) {
+      this.error =
+        'Error canceling subscription: ' +
         (error instanceof Error ? error.message : 'Unknown error');
       this.snackBar.open(this.error, 'Close', {
         duration: 5000,

@@ -1,7 +1,32 @@
 <mat-toolbar color="primary" aria-label="Dashboard toolbar">
   <span>Dashboard</span>
   <span class="spacer"></span>
-  <button mat-button (click)="logout()" aria-label="Logout">Logout</button>
+  <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User menu">
+    <mat-icon>person</mat-icon>
+  </button>
+  <mat-menu #userMenu="matMenu">
+    <ng-container>
+      <button
+        mat-menu-item
+        (click)="subscribe()"
+        *ngIf="!isPremium"
+        aria-label="Subscribe to premium"
+      >
+        Subscribe
+      </button>
+      <button
+        mat-menu-item
+        (click)="unsubscribe()"
+        *ngIf="isPremium"
+        aria-label="Unsubscribe from premium"
+      >
+        Unsubscribe
+      </button>
+      <button mat-menu-item (click)="logout()" aria-label="Logout">
+        Logout
+      </button>
+    </ng-container>
+  </mat-menu>
 </mat-toolbar>
 
 <div class="container" role="main">
@@ -190,25 +215,6 @@
       </mat-card-content>
     </mat-card>
   </ng-container>
-
-  <mat-card class="service-card" *ngIf="(isPremium$ | async) === false">
-    <mat-card-title>Upgrade to Premium</mat-card-title>
-    <mat-card-content>
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="subscribe()"
-        class="full-width"
-        [disabled]="loading"
-        aria-label="Subscribe to premium"
-      >
-        {{ loading ? "Processing..." : "Subscribe Now" }}
-      </button>
-      <div *ngIf="error" class="error" role="alert">
-        {{ error }}
-      </div>
-    </mat-card-content>
-  </mat-card>
 </div>
 
 <ng-template #noServices>
