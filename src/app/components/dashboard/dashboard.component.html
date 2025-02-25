@@ -1,12 +1,30 @@
 <mat-toolbar color="primary" aria-label="Dashboard toolbar">
+  <div class="logo-container">
+    <img
+      src="/assets/logo.png"
+      alt="Mini Marketplace Logo"
+      class="logo"
+      aria-label="Mini Marketplace Logo"
+    />
+  </div>
   <span>Dashboard</span>
   <span class="spacer"></span>
   <button mat-button (click)="logout()" aria-label="Logout">Logout</button>
 </mat-toolbar>
 
-<div class="container" role="main">
-  <mat-card class="service-card">
-    <mat-card-title>My Services</mat-card-title>
+<div class="container" role="main" [@fadeIn]>
+  <mat-card class="service-card full-width">
+    <mat-card-title>
+      My Services
+      <button
+        mat-icon-button
+        class="add-button"
+        (click)="openAddServiceDialog()"
+        aria-label="Add new service"
+      >
+        <mat-icon>add</mat-icon>
+      </button>
+    </mat-card-title>
     <mat-card-content>
       <div *ngIf="loading" class="loading" role="alert" aria-live="polite">
         <mat-progress-spinner
@@ -33,8 +51,8 @@
           <div class="action-buttons">
             <button
               mat-icon-button
-              (click)="editService(service)"
-              attr.aria-label="Edit price for {{ service.name }}"
+              (click)="openUpdatePriceDialog(service)"
+              attr.aria-label="Update price for {{ service.name }}"
             >
               <mat-icon>edit</mat-icon>
             </button>
@@ -49,149 +67,11 @@
           </div>
         </mat-list-item>
       </mat-list>
+      <ng-template #noServices>
+        <p *ngIf="!loading" class="no-services" role="alert">
+          No services yet.
+        </p>
+      </ng-template>
     </mat-card-content>
   </mat-card>
-
-  <mat-card class="service-card">
-    <mat-card-title>Add New Service</mat-card-title>
-    <mat-card-content>
-      <form
-        [formGroup]="createServiceForm"
-        (ngSubmit)="onCreateService()"
-        #createForm="ngForm"
-        role="form"
-        aria-label="Add new service form"
-      >
-        <mat-form-field class="full-width" appearance="outline">
-          <mat-label>Name</mat-label>
-          <input
-            matInput
-            formControlName="name"
-            required
-            aria-required="true"
-          />
-          <mat-error *ngIf="createServiceForm.get('name')?.hasError('required')"
-            >Name is required.</mat-error
-          >
-        </mat-form-field>
-        <mat-form-field class="full-width" appearance="outline">
-          <mat-label>Description</mat-label>
-          <input
-            matInput
-            formControlName="description"
-            required
-            aria-required="true"
-          />
-          <mat-error
-            *ngIf="createServiceForm.get('description')?.hasError('required')"
-            >Description is required.</mat-error
-          >
-        </mat-form-field>
-        <mat-form-field class="full-width" appearance="outline">
-          <mat-label>Price</mat-label>
-          <input
-            matInput
-            type="number"
-            formControlName="price"
-            required
-            aria-required="true"
-          />
-          <mat-error
-            *ngIf="createServiceForm.get('price')?.hasError('required')"
-            >Price is required.</mat-error
-          >
-          <mat-error *ngIf="createServiceForm.get('price')?.hasError('min')"
-            >Price must be at least 0.</mat-error
-          >
-        </mat-form-field>
-        <mat-form-field class="full-width" appearance="outline">
-          <mat-label>Category</mat-label>
-          <input
-            matInput
-            formControlName="category"
-            required
-            aria-required="true"
-          />
-          <mat-error
-            *ngIf="createServiceForm.get('category')?.hasError('required')"
-            >Category is required.</mat-error
-          >
-        </mat-form-field>
-        <button
-          mat-raised-button
-          color="primary"
-          type="submit"
-          class="full-width"
-          [disabled]="createServiceForm.invalid || loading"
-          aria-label="Save new service"
-        >
-          {{ loading ? "Saving..." : "Save" }}
-        </button>
-      </form>
-      <div *ngIf="createError" class="error" role="alert">
-        {{ createError }}
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <ng-container *ngIf="services$ | async as services">
-    <mat-card *ngIf="updatingPriceServiceId" class="service-card">
-      <mat-card-title>
-        Update Price for {{ getServiceName(services) }}
-      </mat-card-title>
-      <mat-card-content>
-        <form
-          [formGroup]="priceUpdateForm"
-          (ngSubmit)="onUpdatePrice()"
-          #priceForm="ngForm"
-          role="form"
-          attr.aria-label="Update price form for {{ getServiceName(services) }}"
-        >
-          <mat-form-field class="full-width" appearance="outline">
-            <mat-label>New Price</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="price"
-              required
-              aria-required="true"
-            />
-            <mat-error
-              *ngIf="priceUpdateForm.get('price')?.hasError('required')"
-              >Price is required.</mat-error
-            >
-            <mat-error *ngIf="priceUpdateForm.get('price')?.hasError('min')"
-              >Price must be at least 0.</mat-error
-            >
-          </mat-form-field>
-          <button
-            mat-raised-button
-            color="primary"
-            type="submit"
-            class="full-width"
-            [disabled]="priceUpdateForm.invalid || loading"
-            attr.aria-label="Update price for {{ getServiceName(services) }}"
-          >
-            {{ loading ? "Updating..." : "Update Price" }}
-          </button>
-          <button
-            mat-button
-            (click)="resetPriceForm()"
-            class="full-width"
-            [disabled]="loading"
-            aria-label="Cancel price update"
-          >
-            Cancel
-          </button>
-        </form>
-        <div *ngIf="priceError" class="error" role="alert">
-          {{ priceError }}
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </ng-container>
 </div>
-
-<ng-template #noServices>
-  <p *ngIf="!loading" class="no-services" role="alert">No services yet.</p>
-</ng-template>

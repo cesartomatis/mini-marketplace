@@ -15,6 +15,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 /**
  * Register component for handling user registration.
+ * Manages the registration form, authentication process, and navigation with animations.
  */
 @Component({
   selector: 'app-register',
@@ -42,11 +43,25 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
   ],
 })
 export class RegisterComponent {
+  /** Form group for collecting and validating registration credentials. */
   registerForm: FormGroup;
+
+  /** Indicates whether a registration operation is in progress. */
   loading = false;
+
+  /** Stores the error message to display, if any. */
   error: string | null = null;
+
+  /** Controls the visibility of the password field. */
   showPassword = false;
 
+  /**
+   * Initializes the registration form with email and password fields.
+   * @param fb - FormBuilder instance for creating the reactive form.
+   * @param authService - Service for handling authentication operations.
+   * @param router - Router for navigating between routes.
+   * @param snackBar - SnackBar for displaying success or error messages.
+   */
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -62,8 +77,9 @@ export class RegisterComponent {
   /**
    * Handles the registration form submission.
    * Validates the form, attempts registration, and navigates on success.
+   * @returns {Promise<void>} - A promise that resolves when the registration process completes.
    */
-  async onRegister() {
+  async onRegister(): Promise<void> {
     if (this.registerForm.invalid) {
       this.setError('Please fill all fields correctly.');
       return;
@@ -74,7 +90,13 @@ export class RegisterComponent {
     }
   }
 
-  private async handleRegisterAttempt() {
+  /**
+   * Attempts to register the user with provided credentials.
+   * Manages loading state and error handling during registration.
+   * @returns {Promise<void>} - A promise that resolves when the registration attempt completes.
+   * @throws {Error} - If registration fails due to invalid credentials or other issues.
+   */
+  private async handleRegisterAttempt(): Promise<void> {
     this.loading = true;
     this.error = null;
     try {
@@ -91,7 +113,11 @@ export class RegisterComponent {
     }
   }
 
-  private setError(message: string) {
+  /**
+   * Sets an error message and displays it via snackbar.
+   * @param message - The error message to display.
+   */
+  private setError(message: string): void {
     this.error = message;
     this.snackBar.open(`Registration error: ${message}`, 'Close', {
       duration: 5000,
@@ -99,7 +125,10 @@ export class RegisterComponent {
     });
   }
 
-  private showSuccessNotification() {
+  /**
+   * Displays a success notification via snackbar after successful registration.
+   */
+  private showSuccessNotification(): void {
     this.snackBar.open('Registered successfully! Please log in.', 'Close', {
       duration: 3000,
       panelClass: ['success-snackbar'],
@@ -109,15 +138,15 @@ export class RegisterComponent {
   /**
    * Navigates to the login page.
    */
-  navigateToLogin() {
+  navigateToLogin(): void {
     this.router.navigate(['/login']);
   }
 
   /**
    * Toggles the visibility of the password input field.
-   * @param event The click event to prevent default behavior
+   * @param event - The click event to prevent default behavior.
    */
-  togglePasswordVisibility(event: Event) {
+  togglePasswordVisibility(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
     this.showPassword = !this.showPassword;

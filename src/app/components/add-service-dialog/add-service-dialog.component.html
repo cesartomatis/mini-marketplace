@@ -1,0 +1,80 @@
+<h2 mat-dialog-title>Add New Service</h2>
+<mat-dialog-content>
+  <form
+    [formGroup]="createServiceForm"
+    (ngSubmit)="onSubmit()"
+    #createForm="ngForm"
+    role="form"
+    aria-label="Add new service form"
+  >
+    <mat-form-field class="full-width" appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" required aria-required="true" />
+      <mat-error *ngIf="createServiceForm.get('name')?.hasError('required')">
+        Name is required.
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="full-width" appearance="outline">
+      <mat-label>Description</mat-label>
+      <input
+        matInput
+        formControlName="description"
+        required
+        aria-required="true"
+      />
+      <mat-error
+        *ngIf="createServiceForm.get('description')?.hasError('required')"
+      >
+        Description is required.
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="full-width" appearance="outline">
+      <mat-label>Price</mat-label>
+      <input
+        matInput
+        type="number"
+        formControlName="price"
+        required
+        aria-required="true"
+      />
+      <mat-error *ngIf="createServiceForm.get('price')?.hasError('required')">
+        Price is required.
+      </mat-error>
+      <mat-error *ngIf="createServiceForm.get('price')?.hasError('min')">
+        Price must be at least 0.
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="full-width" appearance="outline">
+      <mat-label>Category</mat-label>
+      <input
+        matInput
+        formControlName="category"
+        required
+        aria-required="true"
+      />
+      <mat-error
+        *ngIf="createServiceForm.get('category')?.hasError('required')"
+      >
+        Category is required.
+      </mat-error>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button
+    mat-button
+    (click)="dialogRef.close()"
+    aria-label="Cancel adding service"
+  >
+    Cancel
+  </button>
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="createServiceForm.invalid || loading"
+    (click)="onSubmit()"
+    aria-label="Save new service"
+  >
+    {{ loading ? "Saving..." : "Save" }}
+  </button>
+</mat-dialog-actions>

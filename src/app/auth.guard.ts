@@ -5,16 +5,25 @@ import { User } from '@angular/fire/auth';
 import { map, take, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
+/**
+ * Guard for protecting routes by restricting access to authenticated users only.
+ * Implements Angular's CanActivate interface to control route navigation.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
+  /**
+   * Initializes the guard with dependencies for authentication and routing.
+   * @param authService - Service for accessing the current user's authentication state.
+   * @param router - Router for navigating to other routes when access is denied.
+   */
   constructor(private authService: AuthService, private router: Router) {}
 
   /**
-   * Protects routes by ensuring only authenticated users can access them.
-   * Redirects to /login if there is no authenticated user.
-   * @returns Observable<boolean> indicating whether access is allowed
+   * Determines if a route can be activated based on authentication status.
+   * Redirects to the login page if the user is not authenticated.
+   * @returns {Observable<boolean>} - Observable emitting true if access is allowed, false otherwise.
    */
   canActivate() {
     return this.authService.user$.pipe(

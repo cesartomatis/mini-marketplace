@@ -12,7 +12,6 @@
       <mat-card-title>Sign In</mat-card-title>
     </mat-card-header>
     <mat-card-content class="form-content">
-      <!-- Loading spinner displayed while authenticating -->
       <div *ngIf="loading" class="loading" role="alert" aria-live="polite">
         <mat-progress-spinner
           mode="indeterminate"
@@ -20,7 +19,6 @@
           aria-label="Logging in"
         ></mat-progress-spinner>
       </div>
-      <!-- Error message for login failures -->
       <div *ngIf="error" class="error" role="alert">
         <mat-icon color="warn">error</mat-icon>
         {{ error }}

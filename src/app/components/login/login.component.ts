@@ -15,6 +15,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 /**
  * Login component for handling user authentication.
+ * Manages the login form, authentication process, and navigation with animations.
  */
 @Component({
   selector: 'app-login',
@@ -42,11 +43,25 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
   ],
 })
 export class LoginComponent {
+  /** Form group for collecting and validating login credentials. */
   loginForm: FormGroup;
+
+  /** Indicates whether a login operation is in progress. */
   loading = false;
+
+  /** Stores the error message to display, if any. */
   error: string | null = null;
+
+  /** Controls the visibility of the password field. */
   showPassword = false;
 
+  /**
+   * Initializes the login form with email and password fields.
+   * @param fb - FormBuilder instance for creating the reactive form.
+   * @param authService - Service for handling authentication operations.
+   * @param router - Router for navigating between routes.
+   * @param snackBar - SnackBar for displaying success or error messages.
+   */
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -62,8 +77,9 @@ export class LoginComponent {
   /**
    * Handles the login form submission.
    * Validates the form, attempts login, and navigates on success.
+   * @returns {Promise<void>} - A promise that resolves when the login process completes.
    */
-  async onLogin() {
+  async onLogin(): Promise<void> {
     if (this.loginForm.invalid) {
       this.setError('Please fill all fields correctly.');
       return;
@@ -74,7 +90,13 @@ export class LoginComponent {
     }
   }
 
-  private async handleLoginAttempt() {
+  /**
+   * Attempts to log in the user with provided credentials.
+   * Manages loading state and error handling during authentication.
+   * @returns {Promise<void>} - A promise that resolves when the login attempt completes.
+   * @throws {Error} - If authentication fails due to invalid credentials or other issues.
+   */
+  private async handleLoginAttempt(): Promise<void> {
     this.loading = true;
     this.error = null;
     try {
@@ -95,7 +117,11 @@ export class LoginComponent {
     }
   }
 
-  private setError(message: string) {
+  /**
+   * Sets an error message and displays it via snackbar.
+   * @param message - The error message to display.
+   */
+  private setError(message: string): void {
     this.error = message;
     this.snackBar.open(`Login error: ${message}`, 'Close', {
       duration: 5000,
@@ -103,7 +129,10 @@ export class LoginComponent {
     });
   }
 
-  private showSuccessNotification() {
+  /**
+   * Displays a success notification via snackbar after a successful login.
+   */
+  private showSuccessNotification(): void {
     this.snackBar.open('Logged in successfully!', 'Close', {
       duration: 3000,
       panelClass: ['success-snackbar'],
@@ -113,15 +142,15 @@ export class LoginComponent {
   /**
    * Navigates to the registration page.
    */
-  navigateToRegister() {
+  navigateToRegister(): void {
     this.router.navigate(['/register']);
   }
 
   /**
    * Toggles the visibility of the password input field.
-   * @param event The click event to prevent default behavior
+   * @param event - The click event to prevent default behavior.
    */
-  togglePasswordVisibility(event: Event) {
+  togglePasswordVisibility(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
     this.showPassword = !this.showPassword;
