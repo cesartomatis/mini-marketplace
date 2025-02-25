@@ -1,6 +1,19 @@
 <div class="register-container">
-  <mat-card class="register-card" role="main" aria-label="Register form">
+  <mat-card
+    class="register-card"
+    role="main"
+    aria-label="Register form"
+    [@fadeIn]
+  >
     <mat-card-header>
+      <div class="logo-container">
+        <img
+          src="/assets/logo.png"
+          alt="Mini Marketplace Logo"
+          class="logo"
+          aria-label="Mini Marketplace Logo"
+        />
+      </div>
       <mat-card-title>Register</mat-card-title>
     </mat-card-header>
     <mat-card-content class="form-content">
@@ -11,7 +24,10 @@
           aria-label="Registering"
         ></mat-progress-spinner>
       </div>
-      <div *ngIf="error" class="error" role="alert">{{ error }}</div>
+      <div *ngIf="error" class="error" role="alert">
+        <mat-icon color="warn">error</mat-icon>
+        {{ error }}
+      </div>
       <form
         [formGroup]="registerForm"
         (ngSubmit)="onRegister()"
@@ -62,14 +78,13 @@
             >Password must be at least 6 characters long.</mat-error
           >
         </mat-form-field>
-
         <button
           mat-raised-button
           color="primary"
           type="submit"
           class="full-width"
           [disabled]="registerForm.invalid || loading"
-          aria-label="Register"
+          [attr.aria-label]="loading ? 'Registering' : 'Register'"
         >
           {{ loading ? "Registering..." : "Register" }}
         </button>

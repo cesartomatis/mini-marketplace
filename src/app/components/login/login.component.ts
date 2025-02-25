@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { animate, style, transition, trigger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,6 +13,9 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
+/**
+ * Login component for handling user authentication.
+ */
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -28,11 +32,19 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
+  animations: [
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('300ms ease-in', style({ opacity: 1 })),
+      ]),
+    ]),
+  ],
 })
 export class LoginComponent {
   loginForm: FormGroup;
   loading = false;
-  error = '';
+  error: string | null = null;
   showPassword = false;
 
   constructor(
@@ -47,39 +59,68 @@ export class LoginComponent {
     });
   }
 
+  /**
+   * Handles the login form submission.
+   * Validates the form, attempts login, and navigates on success.
+   */
   async onLogin() {
     if (this.loginForm.invalid) {
-      this.error = 'Please fill all fields correctly.';
+      this.setError('Please fill all fields correctly.');
       return;
     }
+    await this.handleLoginAttempt();
+    if (!this.error) {
+      this.loginForm.reset();
+    }
+  }
+
+  private async handleLoginAttempt() {
     this.loading = true;
-    this.error = '';
+    this.error = null;
     try {
       await this.authService.login(
         this.loginForm.value.email,
         this.loginForm.value.password
       );
-      this.snackBar.open('Logged in successfully!', 'Close', {
-        duration: 3000,
-        panelClass: ['success-snackbar'],
-      });
+      this.showSuccessNotification();
       this.router.navigate(['/dashboard']);
     } catch (error: any) {
-      this.error =
-        error.message || 'Login failed. Please check your credentials.';
-      this.snackBar.open(`Login error: ${this.error}`, 'Close', {
-        duration: 5000,
-        panelClass: ['error-snackbar'],
-      });
+      // Handle Firebase Authentication errors
+      const errorMessage =
+        error.message ||
+        'Login failed. Please check your credentials or try again later.';
+      this.setError(errorMessage);
     } finally {
       this.loading = false;
     }
   }
 
+  private setError(message: string) {
+    this.error = message;
+    this.snackBar.open(`Login error: ${message}`, 'Close', {
+      duration: 5000,
+      panelClass: ['error-snackbar'],
+    });
+  }
+
+  private showSuccessNotification() {
+    this.snackBar.open('Logged in successfully!', 'Close', {
+      duration: 3000,
+      panelClass: ['success-snackbar'],
+    });
+  }
+
+  /**
+   * Navigates to the registration page.
+   */
   navigateToRegister() {
     this.router.navigate(['/register']);
   }
 
+  /**
+   * Toggles the visibility of the password input field.
+   * @param event The click event to prevent default behavior
+   */
   togglePasswordVisibility(event: Event) {
     event.stopPropagation();
     event.preventDefault();

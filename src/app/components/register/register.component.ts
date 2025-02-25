@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { animate, style, transition, trigger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,6 +13,9 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
+/**
+ * Register component for handling user registration.
+ */
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -28,11 +32,19 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
+  animations: [
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('300ms ease-in', style({ opacity: 1 })),
+      ]),
+    ]),
+  ],
 })
 export class RegisterComponent {
   registerForm: FormGroup;
   loading = false;
-  error = '';
+  error: string | null = null;
   showPassword = false;
 
   constructor(
@@ -47,39 +59,64 @@ export class RegisterComponent {
     });
   }
 
+  /**
+   * Handles the registration form submission.
+   * Validates the form, attempts registration, and navigates on success.
+   */
   async onRegister() {
     if (this.registerForm.invalid) {
-      this.error = 'Please fill all fields correctly.';
+      this.setError('Please fill all fields correctly.');
       return;
     }
+    await this.handleRegisterAttempt();
+    if (!this.error) {
+      this.registerForm.reset();
+    }
+  }
 
+  private async handleRegisterAttempt() {
     this.loading = true;
-    this.error = '';
+    this.error = null;
     try {
       await this.authService.register(
         this.registerForm.value.email,
         this.registerForm.value.password
       );
-      this.snackBar.open('Registered successfully! Please log in.', 'Close', {
-        duration: 3000,
-        panelClass: ['success-snackbar'],
-      });
+      this.showSuccessNotification();
       this.router.navigate(['/login']);
     } catch (error: any) {
-      this.error = error.message || 'Registration failed. Please try again.';
-      this.snackBar.open(`Registration error: ${this.error}`, 'Close', {
-        duration: 5000,
-        panelClass: ['error-snackbar'],
-      });
+      this.setError(error.message || 'Registration failed. Please try again.');
     } finally {
       this.loading = false;
     }
   }
 
+  private setError(message: string) {
+    this.error = message;
+    this.snackBar.open(`Registration error: ${message}`, 'Close', {
+      duration: 5000,
+      panelClass: ['error-snackbar'],
+    });
+  }
+
+  private showSuccessNotification() {
+    this.snackBar.open('Registered successfully! Please log in.', 'Close', {
+      duration: 3000,
+      panelClass: ['success-snackbar'],
+    });
+  }
+
+  /**
+   * Navigates to the login page.
+   */
   navigateToLogin() {
     this.router.navigate(['/login']);
   }
 
+  /**
+   * Toggles the visibility of the password input field.
+   * @param event The click event to prevent default behavior
+   */
   togglePasswordVisibility(event: Event) {
     event.stopPropagation();
     event.preventDefault();

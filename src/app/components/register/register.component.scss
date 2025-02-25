@@ -1,57 +1,104 @@
+$spacing-unit: 16px;
+
 .register-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  padding: 20px;
-  background-color: #f5f5f5;
+  height: 100vh;
+  padding: $spacing-unit;
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+  overflow: auto;
 }
 
 .register-card {
   width: 100%;
   max-width: 400px;
   transition: box-shadow 0.3s ease-in-out;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
   &:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+mat-card-header {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  align-items: center;
+  gap: $spacing-unit / 2;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .logo {
+    max-width: 40px;
+    height: auto;
   }
 }
 
 .form-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  gap: $spacing-unit / 2;
+  padding: $spacing-unit;
 }
 
 .full-width {
   width: 100%;
-  margin-bottom: 15px;
+  margin-bottom: $spacing-unit / 2;
 }
 
 .loading {
   display: flex;
   justify-content: center;
-  margin: 20px 0;
+  align-items: center;
+  margin: $spacing-unit 0;
 }
 
 .error {
   color: #f44336;
   text-align: center;
-  margin: 10px 0;
-  padding: 10px;
+  margin: $spacing-unit / 2 0;
+  padding: $spacing-unit / 2;
   background-color: #ffebee;
   border-radius: 4px;
+  border: 1px solid #ffcdd2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-unit / 4;
+  animation: shake 0.5s ease-in-out;
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(5px);
+    }
+  }
 }
 
 .link {
   text-align: center;
-  margin-top: 15px;
+  margin-top: $spacing-unit / 2;
   font-size: 14px;
+
   a {
     color: #1976d2;
     text-decoration: none;
     cursor: pointer;
     transition: color 0.2s ease;
+
     &:hover {
       text-decoration: underline;
       color: #1565c0;
@@ -59,17 +106,74 @@
   }
 }
 
+button.mat-raised-button {
+  transition: background-color 0.3s ease, transform 0.2s ease;
+
+  &:hover:not([disabled]) {
+    background-color: #1565c0;
+    transform: scale(1.02);
+  }
+
+  &:focus {
+    outline: 2px solid #bbdefb;
+    outline-offset: 2px;
+  }
+
+  &[disabled] {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+mat-form-field {
+  .mat-form-field-outline {
+    transition: all 0.3s ease;
+  }
+
+  &.mat-focused .mat-form-field-outline {
+    color: #1976d2;
+  }
+
+  &.mat-form-field-invalid .mat-form-field-outline {
+    color: #f44336;
+  }
+
+  .mat-form-field-label {
+    transition: all 0.3s ease;
+  }
+
+  &.mat-focused .mat-form-field-label {
+    color: #1976d2;
+  }
+}
+
+mat-progress-spinner {
+  --mdc-circular-progress-track-color: #e0e0e0;
+  --mdc-circular-progress-active-indicator-color: #1976d2;
+}
+
 button.mat-icon-button[matSuffix] {
-  margin-left: 8px;
+  margin-left: $spacing-unit / 2;
+  min-width: 48px;
+  min-height: 48px;
   transition: transform 0.2s ease;
+
   &:hover {
     transform: scale(1.1);
+  }
+
+  mat-icon {
+    transition: transform 0.2s ease;
+  }
+
+  &:hover mat-icon {
+    transform: scale(1.2);
   }
 }
 
 @media (max-width: 600px) {
   .register-container {
-    padding: 10px;
+    padding: $spacing-unit / 2;
   }
 
   .register-card {
@@ -77,14 +181,44 @@ button.mat-icon-button[matSuffix] {
   }
 
   .form-content {
-    padding: 10px;
+    padding: $spacing-unit / 2;
   }
 
   mat-card-title {
     font-size: 1.2rem;
   }
 
+  .logo-container .logo {
+    max-width: 30px;
+  }
+}
+
+@media (max-width: 400px) {
+  mat-card-title {
+    font-size: 1rem;
+  }
+
+  .form-content {
+    padding: $spacing-unit / 2;
+  }
+
   button.mat-icon-button[matSuffix] {
-    margin-left: 4px;
+    margin-left: $spacing-unit / 4;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .logo-container .logo {
+    max-width: 20px;
+  }
+}
+
+@media (max-width: 320px) {
+  .register-card {
+    max-width: 85%;
+  }
+
+  mat-card-title {
+    font-size: 0.9rem;
   }
 }
