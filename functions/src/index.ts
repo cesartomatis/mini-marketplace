@@ -1,32 +1,43 @@
 import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import Stripe from 'stripe';
-import cors from 'cors'; // Importa cors
+import cors from 'cors';
 
-// Inicializa Firebase Admin
+/**
+ * Initializes the Firebase Admin SDK for server-side operations.
+ */
 admin.initializeApp();
 
-// Inicializa Stripe
+/**
+ * Stripe instance initialized with the secret key from environment variables.
+ */
 const stripe = new Stripe(process.env.STRIPE_SECRET as string, {
   apiVersion: '2025-01-27.acacia',
 });
 
-// Configura CORS para permitir localhost:4200 y otros orígenes (ajústalo para producción)
+/**
+ * CORS configuration options to allow specific origins and methods.
+ */
 const corsOptions = {
-  origin: ['http://localhost:4200', 'https://tu-dominio.web.app'], // Añade tu dominio en producción
-  methods: ['POST'], // Métodos permitidos (ajusta según necesidades)
-  allowedHeaders: ['Content-Type', 'Authorization'], // Encabezados permitidos
-  credentials: true, // Permite cookies, autorización, etc., si es necesario
+  origin: ['http://localhost:4200', 'https://tu-dominio.web.app'], // Update with your production domain
+  methods: ['POST'], // Allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  credentials: true, // Enable credentials if needed
 };
 
-// Función para crear una sesión de checkout (mantén como callable para AngularFireFunctions)
+/**
+ * Callable function to create a Stripe checkout session for subscriptions.
+ * @param request - The request object containing authentication data.
+ * @returns A promise resolving to an object with the session ID.
+ * @throws {HttpsError} - If the user is not authenticated or if session creation fails.
+ */
 export const createCheckoutSession = onCall(
   { region: 'us-central1' },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError(
         'unauthenticated',
-        'Debes estar autenticado para realizar esta acción.'
+        'You must be authenticated to perform this action.'
       );
     }
 
@@ -38,7 +49,7 @@ export const createCheckoutSession = onCall(
         payment_method_types: ['card'],
         line_items: [
           {
-            price: 'price_xxxxxxxxxxxx', // Reemplaza con tu ID de precio
+            price: 'price_xxxxxxxxxxxx', // Replace with your Stripe price ID
             quantity: 1,
           },
         ],
@@ -51,19 +62,25 @@ export const createCheckoutSession = onCall(
     } catch (error) {
       throw new HttpsError(
         'internal',
-        'Error al crear la sesión: ' +
+        'Failed to create session: ' +
           (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   }
 );
 
-// Webhook (mantén sin cambios, pero verifica si necesita CORS)
+/**
+ * HTTP request handler for Stripe webhook events.
+ * Processes checkout session completions to update user subscription status.
+ * @param req - The HTTP request object containing webhook data.
+ * @param res - The HTTP response object to send status back to Stripe.
+ * @returns A promise resolving when the webhook is processed.
+ */
 export const stripeWebhook = onRequest(
   { region: 'us-central1' },
   async (req, res) => {
     const sig = req.headers['stripe-signature'] as string;
-    const endpointSecret = 'whsec_xxxxxxxxxxxx'; // Reemplaza con tu secreto
+    const endpointSecret = 'whsec_xxxxxxxxxxxx'; // Replace with your webhook secret
 
     let event: Stripe.Event;
 
@@ -88,13 +105,17 @@ export const stripeWebhook = onRequest(
       }
     }
 
-    res.status(200).send('Webhook recibido');
+    res.status(200).send('Webhook received');
   }
 );
 
-// Función HTTPS para pruebas CORS (opcional, si necesitas una función genérica)
+/**
+ * HTTP request handler to test CORS configuration.
+ * @param req - The HTTP request object.
+ * @param res - The HTTP response object.
+ */
 export const testCORS = onRequest({ region: 'us-central1' }, (req, res) => {
   cors(corsOptions)(req, res, () => {
-    res.status(200).send('CORS configurado correctamente');
+    res.status(200).send('CORS configured successfully');
   });
 });
